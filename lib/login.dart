@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'home.dart';
 import 'register.dart';
 import 'forgot_password.dart';
@@ -14,7 +14,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _auth = FirebaseAuth.instance;
   bool show = true, showSpinner = false;
   String email, password, validCredentials = "";
 
@@ -159,7 +158,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     TextButton(
                       onPressed: () {
-                        Navigator.pushNamed(context, ForgotScreen.id);
+                        Navigator.of(context)
+                            .pushReplacementNamed(ForgotScreen.id);
                         _formKey.currentState.reset();
                       },
                       child: Text(
@@ -199,13 +199,47 @@ class _LoginScreenState extends State<LoginScreen> {
                           });
                           try {
                             if (_formKey.currentState.validate()) {
-                              final user =
-                                  await _auth.signInWithEmailAndPassword(
-                                      email: email, password: password);
-                              if (user != null) {
-                                Navigator.pushNamed(context, HomeScreen.id)
-                                    .then((_) => _formKey.currentState.reset());
-                              }
+                              await Firestore.instance
+                                  .collection('users')
+                                  .document(email)
+                                  .get()
+                                  .then((DocumentSnapshot document) {
+                                if (document != null) {
+                                  if (email == document.data['email'] &&
+                                      password == document.data["password"]) {
+                                    Navigator.of(context)
+                                        .pushReplacementNamed(HomeScreen.id)
+                                        .then((_) =>
+                                            _formKey.currentState.reset());
+                                  } else {
+                                    setState(() {
+                                      showSpinner = false;
+                                      show = true;
+                                      validCredentials = "Invalid Credentials";
+                                    });
+                                    _formKey.currentState.reset();
+                                    Timer(Duration(seconds: 3), () {
+                                      setState(() {
+                                        validCredentials = "";
+                                      });
+                                    });
+                                  }
+                                } else {
+                                  setState(() {
+                                    showSpinner = false;
+                                    show = true;
+                                    validCredentials = "User not exsist";
+                                  });
+                                  _formKey.currentState.reset();
+                                  Timer(Duration(seconds: 3), () {
+                                    setState(() {
+                                      validCredentials = "";
+                                    });
+                                  });
+                                }
+                              });
+
+                              //
                             }
                             setState(() {
                               showSpinner = false;

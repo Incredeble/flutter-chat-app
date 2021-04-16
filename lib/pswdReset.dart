@@ -18,8 +18,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
 
   Future changePassword() async {
     print("mail : ${widget.email}");
-    final _auth = Firestore.instance;
-    _auth
+    Firestore.instance
         .collection('users')
         .document('${widget.email}')
         .updateData({"password": password})
@@ -67,6 +66,20 @@ class _PasswordScreenState extends State<PasswordScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.only(top: 16.0),
+                child: Text(
+                  "Update",
+                  style: TextStyle(color: Colors.white, fontSize: 45.0),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: Text(
+                  "Password",
+                  style: TextStyle(color: Colors.white, fontSize: 45.0),
+                ),
+              ),
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16.0, vertical: 7.0),
@@ -150,7 +163,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
                 ),
               ),
               SizedBox(
-                height: 20.0,
+                height: 25.0,
                 child: Container(
                   child: Text(
                     message,
@@ -188,7 +201,17 @@ class _PasswordScreenState extends State<PasswordScreen> {
                     ),
                   ),
                   onPressed: () async {
-                    if (password == confirmPassword) {
+                    if (password.length < 6 || confirmPassword.length < 6) {
+                      setState(() {
+                        message = "Password must be longer than 6 characters";
+                        mess = false;
+                      });
+                      Timer(Duration(seconds: 4), () {
+                        setState(() {
+                          message = "";
+                        });
+                      });
+                    } else if (password == confirmPassword) {
                       await changePassword();
                     } else {
                       setState(() {

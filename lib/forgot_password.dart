@@ -53,26 +53,37 @@ class _ForgotScreenState extends State<ForgotScreen> {
     });
   }
 
-  Future Exsist(String email) async {
-    final _auth = Firestore.instance;
-    await _auth
+  Future exsist(String email) async {
+    await Firestore.instance
         .collection('users')
         .document(email)
         .get()
         .then((DocumentSnapshot document) {
-      print("email : $email");
-      sendOTP(email);
+      if (document.data != null) {
+        sendOTP(email);
+      } else {
+        setState(() {
+          showSpinner = false;
+          message1 = "User not exsist";
+          mess1 = true;
+        });
+        Timer(Duration(seconds: 4), () {
+          setState(() {
+            message1 = "";
+            mess1 = false;
+          });
+        });
+      }
     }).catchError((_) {
-      print("catch : error");
       setState(() {
         showSpinner = false;
         message1 = "User not exsist";
-        mess1 = false;
+        mess1 = true;
       });
       Timer(Duration(seconds: 4), () {
         setState(() {
           message1 = "";
-          mess1 = true;
+          mess1 = false;
         });
       });
     });
@@ -165,7 +176,7 @@ class _ForgotScreenState extends State<ForgotScreen> {
                               setState(() {
                                 showSpinner = true;
                               });
-                              await Exsist(email);
+                              await exsist(email);
                             },
                           ),
                           hintText: "Enter email",

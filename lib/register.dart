@@ -1,6 +1,4 @@
-import 'package:back_button_interceptor/back_button_interceptor.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'login.dart';
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -13,26 +11,6 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  @override
-  void initState() {
-    super.initState();
-
-    BackButtonInterceptor.add(myInterceptor);
-  }
-
-  void disopose() {
-    BackButtonInterceptor.remove(myInterceptor);
-    super.dispose();
-  }
-
-  bool myInterceptor(bool stopDefaultButtonEvent, RouteInfo info) {
-    if ([LoginScreen.id].contains(info.currentRoute(context))) {
-      return false;
-    }
-    return true;
-  }
-
-  final _auth = FirebaseAuth.instance;
   bool show = true, showSpinner = false;
   String name, contact, email, password, userExsist = "";
 
@@ -283,24 +261,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               showSpinner = true;
                             });
                             try {
-                              await _auth
-                                  .createUserWithEmailAndPassword(
-                                      email: email, password: password)
-                                  .then((currentUser) => Firestore.instance
-                                          .collection("users")
-                                          .document(currentUser.email)
-                                          .setData({
-                                        "email": currentUser.email,
-                                        "password": password,
-                                        "name": name,
-                                        "contact": contact,
-                                      }).then((result) => {
-                                                Navigator.pushNamed(
-                                                        context, LoginScreen.id)
-                                                    .then((_) => _formKey
-                                                        .currentState
-                                                        .reset())
-                                              }));
+                              await Firestore.instance
+                                  .collection("users")
+                                  .document(email)
+                                  .setData({
+                                "email": email,
+                                "password": password,
+                                "name": name,
+                                "contact": contact,
+                              }).then((result) => {
+                                        Navigator.of(context)
+                                            .pushReplacementNamed(
+                                                LoginScreen.id)
+                                            .then((_) =>
+                                                _formKey.currentState.reset())
+                                      });
                               setState(() {
                                 showSpinner = false;
                               });
