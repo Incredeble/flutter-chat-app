@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:back_button_interceptor/back_button_interceptor.dart';
-import 'package:mate_rate/pswdReset.dart';
 import 'home.dart';
 import 'register.dart';
 import 'forgot_password.dart';
@@ -16,25 +14,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  void initState() {
-    super.initState();
-
-    BackButtonInterceptor.add(myInterceptor);
-  }
-
-  void disopose() {
-    BackButtonInterceptor.remove(myInterceptor);
-    super.dispose();
-  }
-
-  bool myInterceptor(bool stopDefaultButtonEvent, RouteInfo info) {
-    if ([RegisterScreen.id, ForgotScreen.id, PasswordScreen.id]
-        .contains(info.currentRoute(context))) {
-      return false;
-    }
-    return true;
-  }
-
   final _auth = FirebaseAuth.instance;
   bool show = true, showSpinner = false;
   String email, password, validCredentials = "";
