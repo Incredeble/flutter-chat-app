@@ -1,9 +1,8 @@
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'home.dart';
 import 'register.dart';
-import 'forgot_password.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -14,6 +13,27 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _auth = FirebaseAuth.instance;
+  FirebaseUser loggedInUser;
+
+  @override
+  void initState() {
+    super.initState();
+    print("------------------------------------------------------");
+    getCurrentUser();
+  }
+
+  void getCurrentUser() async {
+    try {
+      final user = await _auth.currentUser();
+      if (user != null) {
+        Navigator.pushNamed(context, HomeScreen.id);
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
   bool show = true, showSpinner = false;
   String email, password, validCredentials = "";
 
@@ -47,7 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.teal,
+      backgroundColor: Colors.white,
       resizeToAvoidBottomInset: false,
       body: ModalProgressHUD(
         inAsyncCall: showSpinner,
@@ -57,27 +77,26 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               Container(
-                height: MediaQuery.of(context).size.height * 0.3,
-                padding: EdgeInsets.symmetric(vertical: 70.0),
-                child: CircleAvatar(
-                  backgroundColor: Colors.grey[300],
-                  child: Icon(
-                    Icons.person,
-                    size: 80,
-                    color: Colors.white,
+                  height: MediaQuery.of(context).size.height * 0.2,
+                  padding: EdgeInsets.symmetric(vertical: 60.0),
+                  child: Text(
+                    "Login",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 40.0,
+                    ),
                   ),
-                ),
-              ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.only(
+                      bottomRight: Radius.circular(30.0),
+                      bottomLeft: Radius.circular(30.0),
+                    ),
+                    color: Colors.blue,
+                  )),
               Container(
-                height: MediaQuery.of(context).size.height * 0.7,
+                height: MediaQuery.of(context).size.height * 0.8,
                 padding: EdgeInsets.only(top: 30.0),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.only(
-                    topRight: Radius.circular(30.0),
-                    topLeft: Radius.circular(30.0),
-                  ),
-                  color: Colors.white,
-                ),
                 child: Column(
                   children: <Widget>[
                     Padding(
@@ -97,21 +116,22 @@ class _LoginScreenState extends State<LoginScreen> {
                         keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
                           filled: true,
-                          fillColor: Colors.grey[300],
+                          fillColor: Colors.grey[200],
                           prefixIcon: Icon(
                             Icons.email,
-                            color: Colors.teal,
+                            color: Colors.blueAccent,
                           ),
+                          labelText: "Username",
+                          labelStyle: TextStyle(color: Colors.blueAccent),
                           hintText: "Enter Username",
                           hintStyle: TextStyle(
-                            color: Colors.grey[700],
+                            color: Colors.grey[800],
                             fontSize: 18.0,
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.all(
                               Radius.circular(10.0),
                             ),
-                            borderSide: BorderSide.none,
                           ),
                         ),
                         validator: emailValidator,
@@ -126,48 +146,35 @@ class _LoginScreenState extends State<LoginScreen> {
                         obscureText: show,
                         decoration: InputDecoration(
                           filled: true,
-                          fillColor: Colors.grey[300],
+                          fillColor: Colors.grey[200],
                           prefixIcon: Icon(
                             Icons.lock,
-                            color: Colors.teal,
+                            color: Colors.blueAccent,
                           ),
                           suffix: InkWell(
                             child: Icon(
                               Icons.visibility,
-                              color: Colors.teal,
+                              color: Colors.blueAccent,
                             ),
                             onTap: passwordVisibility,
                           ),
+                          labelText: "Password",
+                          labelStyle: TextStyle(color: Colors.blueAccent),
                           hintText: "Enter Password",
                           hintStyle: TextStyle(
-                            color: Colors.grey[700],
+                            color: Colors.grey[800],
                             fontSize: 18.0,
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.all(
                               Radius.circular(10.0),
                             ),
-                            borderSide: BorderSide.none,
                           ),
                         ),
                         validator: passwordValidator,
                         onChanged: (value) {
                           password = value;
                         },
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context)
-                            .pushReplacementNamed(ForgotScreen.id);
-                        _formKey.currentState.reset();
-                      },
-                      child: Text(
-                        "Forgot Password",
-                        style: TextStyle(
-                          color: Colors.teal,
-                          fontSize: 20.0,
-                        ),
                       ),
                     ),
                     SizedBox(
@@ -180,8 +187,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             padding: MaterialStateProperty.all<EdgeInsets>(
                                 EdgeInsets.symmetric(
                                     vertical: 15, horizontal: 40)),
-                            backgroundColor:
-                                MaterialStateProperty.all<Color>(Colors.teal),
+                            backgroundColor: MaterialStateProperty.all<Color>(
+                                Colors.blueAccent),
                             shape: MaterialStateProperty.all<
                                     RoundedRectangleBorder>(
                                 RoundedRectangleBorder(
@@ -199,51 +206,16 @@ class _LoginScreenState extends State<LoginScreen> {
                           });
                           try {
                             if (_formKey.currentState.validate()) {
-                              await Firestore.instance
-                                  .collection('users')
-                                  .document(email)
-                                  .get()
-                                  .then((DocumentSnapshot document) {
-                                if (document != null) {
-                                  if (email == document.data['email'] &&
-                                      password == document.data["password"]) {
-                                    Navigator.of(context)
-                                        .pushReplacementNamed(HomeScreen.id)
-                                        .then((_) =>
-                                            _formKey.currentState.reset());
-                                  } else {
-                                    setState(() {
-                                      showSpinner = false;
-                                      show = true;
-                                      validCredentials = "Invalid Credentials";
-                                    });
-                                    _formKey.currentState.reset();
-                                    Timer(Duration(seconds: 3), () {
-                                      setState(() {
-                                        validCredentials = "";
-                                      });
-                                    });
-                                  }
-                                } else {
-                                  setState(() {
-                                    showSpinner = false;
-                                    show = true;
-                                    validCredentials = "User not exsist";
-                                  });
-                                  _formKey.currentState.reset();
-                                  Timer(Duration(seconds: 3), () {
-                                    setState(() {
-                                      validCredentials = "";
-                                    });
-                                  });
-                                }
+                              await FirebaseAuth.instance
+                                  .signInWithEmailAndPassword(
+                                      email: email, password: password);
+                              setState(() {
+                                showSpinner = false;
                               });
-
-                              //
+                              _formKey.currentState.reset();
+                              Navigator.of(context)
+                                  .pushReplacementNamed(HomeScreen.id);
                             }
-                            setState(() {
-                              showSpinner = false;
-                            });
                           } catch (e) {
                             setState(() {
                               showSpinner = false;
@@ -269,7 +241,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Text(
                           "Don't have an account ? ",
                           style: TextStyle(
-                            color: Colors.teal,
+                            color: Colors.blueAccent,
                             fontSize: 20.0,
                           ),
                         ),
@@ -281,7 +253,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: Text(
                             "Register Now",
                             style: TextStyle(
-                              color: Colors.teal,
+                              color: Colors.blueAccent,
                               fontSize: 20.0,
                             ),
                           ),

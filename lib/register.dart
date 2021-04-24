@@ -1,7 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'login.dart';
 import 'dart:async';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -12,7 +12,7 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   bool show = true, showSpinner = false;
-  String name, contact, email, password, userExsist = "";
+  String email, password, userExsist = "";
 
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -33,18 +33,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-  String contactNumberValidate(String value) {
-    String pattern = r'(^(?:[+0]9)?[0-9]{10,12}$)';
-    RegExp regExp = new RegExp(pattern);
-    if (value.length != 10) {
-      return 'Please enter 10 digits mobile number';
-    }
-    if (!regExp.hasMatch(value)) {
-      return 'Please enter valid mobile number';
-    }
-    return null;
-  }
-
   String passwordValidator(String password) {
     if (password.length < 6) {
       return 'Password must be longer than 6 characters';
@@ -56,7 +44,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.teal,
+      backgroundColor: Colors.white,
       resizeToAvoidBottomInset: false,
       body: ModalProgressHUD(
         inAsyncCall: showSpinner,
@@ -66,27 +54,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               Container(
-                height: MediaQuery.of(context).size.height * 0.2,
-                padding: EdgeInsets.only(top: 50.0, bottom: 20),
-                child: CircleAvatar(
-                  backgroundColor: Colors.grey[300],
-                  child: Icon(
-                    Icons.person,
-                    size: 70,
-                    color: Colors.white,
+                  height: MediaQuery.of(context).size.height * 0.2,
+                  padding: EdgeInsets.only(top: 50.0, bottom: 20),
+                  child: Text(
+                    "Register",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 40.0,
+                    ),
                   ),
-                ),
-              ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.only(
+                      bottomRight: Radius.circular(30.0),
+                      bottomLeft: Radius.circular(30.0),
+                    ),
+                    color: Colors.blueAccent,
+                  )),
               Container(
                 height: MediaQuery.of(context).size.height * 0.8,
                 padding: EdgeInsets.only(top: 20.0),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.only(
-                    topRight: Radius.circular(30.0),
-                    topLeft: Radius.circular(30.0),
-                  ),
-                  color: Colors.white,
-                ),
                 child: Column(
                   children: <Widget>[
                     Padding(
@@ -104,59 +91,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16.0, vertical: 7.0),
                       child: TextFormField(
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: Colors.grey[300],
-                          prefixIcon: Icon(
-                            Icons.person,
-                            color: Colors.teal,
-                          ),
-                          hintText: "Enter Name",
-                          hintStyle: TextStyle(
-                            color: Colors.grey[700],
-                            fontSize: 18.0,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10.0),
-                            ),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                        validator: (value) {
-                          if (value.length < 3) {
-                            return "Please enter a valid last name.";
-                          } else {
-                            return null;
-                          }
-                        },
-                        onChanged: (value) {
-                          name = value;
-                        },
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16.0, vertical: 7.0),
-                      child: TextFormField(
                         keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
                           filled: true,
-                          fillColor: Colors.grey[300],
+                          fillColor: Colors.grey[200],
                           prefixIcon: Icon(
                             Icons.email,
-                            color: Colors.teal,
+                            color: Colors.blueAccent,
                           ),
+                          labelText: "Email",
+                          labelStyle: TextStyle(color: Colors.blueAccent),
                           hintText: "Enter Email",
                           hintStyle: TextStyle(
-                            color: Colors.grey[700],
+                            color: Colors.grey[800],
                             fontSize: 18.0,
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.all(
                               Radius.circular(10.0),
                             ),
-                            borderSide: BorderSide.none,
                           ),
                         ),
                         validator: emailValidator,
@@ -169,61 +122,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16.0, vertical: 7.0),
                       child: TextFormField(
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: Colors.grey[300],
-                          prefixIcon: Icon(
-                            Icons.contact_phone,
-                            color: Colors.teal,
-                          ),
-                          hintText: "Enter contact number",
-                          hintStyle: TextStyle(
-                            color: Colors.grey[700],
-                            fontSize: 18.0,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10.0),
-                            ),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                        validator: contactNumberValidate,
-                        onChanged: (value) {
-                          contact = value;
-                        },
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16.0, vertical: 7.0),
-                      child: TextFormField(
                         obscureText: show,
                         decoration: InputDecoration(
                           filled: true,
-                          fillColor: Colors.grey[300],
+                          fillColor: Colors.grey[200],
                           prefixIcon: Icon(
                             Icons.lock,
-                            color: Colors.teal,
+                            color: Colors.blueAccent,
                           ),
                           suffix: InkWell(
                             child: Icon(
                               Icons.visibility,
-                              color: Colors.teal,
+                              color: Colors.blueAccent,
                             ),
                             onTap: passwordVisibility,
                           ),
+                          labelText: "Password",
+                          labelStyle: TextStyle(color: Colors.blueAccent),
                           hintText: "Enter Password",
                           hintStyle: TextStyle(
-                            color: Colors.grey[700],
+                            color: Colors.grey[800],
                             fontSize: 18.0,
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.all(
                               Radius.circular(10.0),
                             ),
-                            borderSide: BorderSide.none,
                           ),
                         ),
                         validator: passwordValidator,
@@ -239,8 +163,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           padding: MaterialStateProperty.all<EdgeInsets>(
                               EdgeInsets.symmetric(
                                   vertical: 15, horizontal: 40)),
-                          backgroundColor:
-                              MaterialStateProperty.all<Color>(Colors.teal),
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              Colors.blueAccent),
                           shape:
                               MaterialStateProperty.all<RoundedRectangleBorder>(
                             RoundedRectangleBorder(
@@ -256,29 +180,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                         ),
                         onPressed: () async {
+                          print(
+                              'affffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff');
                           if (_formKey.currentState.validate()) {
                             setState(() {
                               showSpinner = true;
                             });
                             try {
-                              await Firestore.instance
-                                  .collection("users")
-                                  .document(email)
-                                  .setData({
-                                "email": email,
-                                "password": password,
-                                "name": name,
-                                "contact": contact,
-                              }).then((result) => {
-                                        Navigator.of(context)
-                                            .pushReplacementNamed(
-                                                LoginScreen.id)
-                                            .then((_) =>
-                                                _formKey.currentState.reset())
-                                      });
+                              final newUser = await FirebaseAuth.instance
+                                  .createUserWithEmailAndPassword(
+                                      email: email, password: password);
                               setState(() {
                                 showSpinner = false;
                               });
+                              if (newUser != null) {
+                                Navigator.of(context)
+                                    .pushReplacementNamed(LoginScreen.id);
+                              }
                             } catch (e) {
                               setState(() {
                                 show = true;
@@ -292,6 +210,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 });
                               });
                             }
+                          } else {
+                            setState(() {
+                              show = true;
+                              showSpinner = false;
+                              userExsist = "User Already Exsist";
+                            });
+                            _formKey.currentState.reset();
+                            Timer(Duration(seconds: 3), () {
+                              setState(() {
+                                userExsist = "";
+                              });
+                            });
+                            print(
+                                'bffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff');
                           }
                         },
                       ),
@@ -305,7 +237,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         Text(
                           "Already have an account ? ",
                           style: TextStyle(
-                            color: Colors.teal,
+                            color: Colors.blueAccent,
                             fontSize: 20.0,
                           ),
                         ),
@@ -317,7 +249,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           child: Text(
                             "Login Now",
                             style: TextStyle(
-                              color: Colors.teal,
+                              color: Colors.blueAccent,
                               fontSize: 20.0,
                             ),
                           ),
